@@ -1,0 +1,9 @@
+streamlit
+pandas
+openpyxl
+pdfplumber
+pytesseract
+Pillow
+opencv-python-headless
+spacy
+numpy
