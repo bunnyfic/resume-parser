@@ -1,6 +1,8 @@
 # resume-parser
 # Resume Parser & Candidate Data Extractor
 live demo : https://resume-parser-lg8ejhtmlpzcuy5fg3h2k6.streamlit.app/
+
+
 A Python-based resume parsing application that automatically extracts **Name, Email, and Phone Number** from multiple resumes and exports the results into a structured Excel sheet.
 
 Built to reduce repetitive manual screening work for recruiters and HR teams.
