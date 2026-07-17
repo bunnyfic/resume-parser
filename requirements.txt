@@ -7,10 +7,3 @@ Pillow
 opencv-python-headless
 numpy
 phonenumbers
-
-# spaCy is pinned to match the model wheel below — if you bump one, bump the other.
-spacy==3.7.5
-
-# Streamlit Cloud can't run `python -m spacy download`, so the model is
-# installed directly as a pip package via its release wheel.
-en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl
