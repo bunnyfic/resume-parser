@@ -43,28 +43,33 @@ def process_resume(file_path: str) -> dict:
 st.set_page_config(page_title="Resume Parser", layout="wide")
 
 # ---------- THEME ----------
+# Base dark theme comes from .streamlit/config.toml (controls native widgets,
+# sidebar, inputs, etc). This CSS only styles the pieces config.toml can't
+# reach: the dataframe header row and the download button.
 st.markdown(
     """
     <style>
-        .stApp {
-            background-color: #EBD2E9;
-        }
         div[data-testid="stDataFrame"] {
-            background-color: #ffffff;
+            background-color: #1B1F27;
+            border: 1px solid #2A2F3A;
             border-radius: 6px;
             padding: 6px;
         }
         thead tr th {
-            background-color: #F2C9D6 !important;
-            color: black !important;
+            background-color: #23272F !important;
+            color: #E6E6E6 !important;
         }
         .stDownloadButton button {
-            background-color: #5E5E5E;
-            color: white;
-            border-radius: 0px;
+            background-color: #7C9CFF;
+            color: #0E1117;
+            border-radius: 6px;
             border: none;
             padding: 0.6em 1.2em;
-            font-weight: 500;
+            font-weight: 600;
+        }
+        .stDownloadButton button:hover {
+            background-color: #A0B6FF;
+            color: #0E1117;
         }
     </style>
     """,
