@@ -201,92 +201,296 @@ st.markdown(
             border-radius: 8px;
             font-family: 'Inter', sans-serif;
         }}
+
+        /* ---- Sidebar ---- */
+        section[data-testid="stSidebar"] {{
+            background-color: #{CARD_DARK};
+            border-right: 1px solid #2A2F3A;
+        }}
+        section[data-testid="stSidebar"] h1,
+        section[data-testid="stSidebar"] h2,
+        section[data-testid="stSidebar"] h3 {{
+            font-family: 'Poppins', sans-serif;
+            color: #{LIGHT_TEXT} !important;
+        }}
+        section[data-testid="stSidebar"] label {{
+            font-family: 'Inter', sans-serif;
+            color: #{LIGHT_TEXT} !important;
+        }}
+
+        /* ---- Neon info boxes (About page) ---- */
+        .neon-box {{
+            background-color: #{CARD_DARK};
+            border: 1px solid #{NEON_GREEN}55;
+            border-left: 4px solid #{NEON_GREEN};
+            border-radius: 10px;
+            padding: 1.3rem 1.6rem;
+            margin-bottom: 1.4rem;
+            box-shadow: 0 0 18px rgba(57, 255, 20, 0.08);
+        }}
+        .neon-box h3 {{
+            font-family: 'Poppins', sans-serif;
+            color: #{NEON_GREEN} !important;
+            font-size: 1.15rem;
+            margin-top: 0;
+            margin-bottom: 0.7rem;
+            text-shadow: 0 0 10px rgba(57, 255, 20, 0.35);
+        }}
+        .neon-box p, .neon-box li {{
+            font-family: 'Inter', sans-serif;
+            color: #{LIGHT_TEXT};
+            font-size: 0.96rem;
+            line-height: 1.55;
+        }}
+        .neon-box ul {{
+            margin: 0;
+            padding-left: 1.2rem;
+        }}
+        .neon-box b, .neon-box strong {{
+            color: #{NEON_GREEN};
+        }}
+        .neon-box code {{
+            background-color: #{BG_DARK};
+            color: #{NEON_GREEN};
+            border-radius: 4px;
+            padding: 0.1rem 0.35rem;
+            font-size: 0.88rem;
+        }}
+        .neon-divider {{
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #{NEON_GREEN}88, transparent);
+            margin: 1.8rem 0;
+        }}
     </style>
     """,
     unsafe_allow_html=True
 )
 
-st.markdown(
-    """
-    <div class="app-header">
-        <h1>Resume <span>Parser</span></h1>
-        <p>Upload PDF resumes and export clean, structured candidate data to Excel.</p>
-    </div>
+# ---------- SIDEBAR NAVIGATION ----------
+st.sidebar.markdown(
+    f"""
+    <h2 style="color:#{NEON_GREEN}; text-shadow:0 0 10px rgba(57,255,20,0.4);
+    font-family:'Poppins', sans-serif; margin-bottom:0.2rem;">📋 Menu</h2>
     """,
     unsafe_allow_html=True
 )
-
-# ---------- ENVIRONMENT CHECK ----------
-if not is_ocr_available():
-    st.warning(
-        "⚠️ OCR engine (Tesseract) not detected on this server. Scanned "
-        "PDFs won't be read correctly — only text-based PDFs will work. "
-        "If this app is deployed on Streamlit Cloud, add a `packages.txt` "
-        "file to your repo root containing the line `tesseract-ocr` and redeploy."
-    )
-
-# ---------- SESSION STATE ----------
-if "results" not in st.session_state:
-    st.session_state.results = []
-
-if "processed_files" not in st.session_state:
-    st.session_state.processed_files = set()
-
-uploaded_files = st.file_uploader(
-    "Upload resumes (PDF only)",
-    type=["pdf"],
-    accept_multiple_files=True
+page = st.sidebar.radio(
+    "Navigate",
+    ["🏠 Resume Parser", "ℹ️ About the App"],
+    label_visibility="collapsed"
 )
 
-# ---------- PROCESS FILES ----------
-if uploaded_files:
-    new_files = [
-        f for f in uploaded_files
-        if f.name not in st.session_state.processed_files
-    ]
 
-    if new_files:
-        progress = st.progress(0)
-        status = st.empty()
-        failed_files = []
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            for i, file in enumerate(new_files, start=1):
-                status.text(f"Processing: {file.name}")
-
-                temp_path = os.path.join(temp_dir, file.name)
-                with open(temp_path, "wb") as f:
-                    f.write(file.read())
-
-                result = process_resume(temp_path)
-                if result:
-                    st.session_state.results.append(result)
-                else:
-                    failed_files.append(file.name)
-
-                st.session_state.processed_files.add(file.name)
-                progress.progress(i / len(new_files))
-
-        status.empty()
-        progress.empty()
-
-        if failed_files:
-            st.error(f"❌ Could not process {len(failed_files)} file(s): {', '.join(failed_files)}")
-        if len(new_files) - len(failed_files) > 0:
-            st.success(f"✅ Successfully processed {len(new_files) - len(failed_files)} file(s)!")
-
-# ---------- DISPLAY ----------
-if st.session_state.results:
-    df = pd.DataFrame(st.session_state.results)
-
-    st.subheader("Extracted Data")
-    st.dataframe(df, use_container_width=True)
-
-    excel_buffer = build_styled_excel(df)
-
-    st.download_button(
-        label="⬇  Download Excel",
-        data=excel_buffer,
-        file_name="resume_data.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+def render_about_page():
+    st.markdown(
+        """
+        <div class="app-header">
+            <h1>About <span>the App</span></h1>
+            <p>How resume parsing works, why ATS formatting matters, and the technology behind it.</p>
+        </div>
+        """,
+        unsafe_allow_html=True
     )
+
+    st.markdown(
+        f"""
+        <div class="neon-box">
+            <h3>📄 How Recruiters Extract Name, Email &amp; Phone from ATS-Compatible PDFs</h3>
+            <p>
+            An <b>ATS-compatible (Applicant Tracking System-compatible) resume</b> is built as a
+            genuine <b>text-layer PDF</b> — meaning every character, from the candidate's name to
+            their contact details, is stored as selectable, machine-readable text rather than a
+            picture. This is what makes automated extraction reliable:
+            </p>
+            <ul>
+                <li><b>Text extraction:</b> Tools like <code>PyPDF2</code>, <code>pdfplumber</code>,
+                or <code>PyMuPDF</code> read the embedded text layer directly from the PDF's internal
+                structure, preserving reading order line by line.</li>
+                <li><b>Name detection:</b> The candidate's name is usually the largest / topmost text
+                block on page one, so parsers combine positional heuristics (font size, position) with
+                NLP-based Named Entity Recognition (e.g. spaCy's <code>PERSON</code> entity) to isolate it
+                confidently.</li>
+                <li><b>Email extraction:</b> A regular expression such as
+                <code>[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+</code> reliably matches the
+                standard email format, wherever it appears in the cleaned text.</li>
+                <li><b>Phone extraction:</b> Regex patterns tuned for international and local formats
+                (with optional country codes, brackets, and separators) pull out digit sequences that
+                match valid phone-number shapes.</li>
+            </ul>
+            <p>
+            Because everything sits in a single, linear text stream, this pipeline works
+            <b>fast and near-perfectly</b> on well-structured, single-column resumes.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        f"""
+        <div class="neon-box">
+            <h3>⚠️ Common Flaws in Non-ATS-Friendly Resumes</h3>
+            <p>
+            Many visually appealing resume templates (often built in <b>Canva, Photoshop, or heavily
+            designed Word/InDesign templates</b>) actively break automated parsing. Typical issues include:
+            </p>
+            <ul>
+                <li><b>Multi-column layouts:</b> Parsers read left-to-right, top-to-bottom in the order
+                text is stored in the PDF — not the order it visually appears. A two-column resume can
+                interleave the "Skills" sidebar with the "Experience" section mid-sentence.</li>
+                <li><b>Text inside tables or text boxes:</b> Content placed in graphic text boxes is
+                sometimes stored out of sequence, or excluded from the extractable text layer entirely.</li>
+                <li><b>Contact info as images/icons:</b> Phone and email icons paired with text rendered
+                as part of a graphic (rather than real text) are invisible to text extractors.</li>
+                <li><b>Headers &amp; footers:</b> Many ATS parsers ignore header/footer regions — a
+                candidate's name or contact details placed there can be silently dropped.</li>
+                <li><b>Scanned or "flattened" PDFs:</b> A resume exported as a flattened image, or a
+                phone-scanned photo saved as PDF, has <b>no text layer at all</b> — only pixels — so
+                traditional extraction returns nothing.</li>
+                <li><b>Unusual fonts &amp; special characters:</b> Decorative or embedded fonts can be
+                mis-encoded during extraction, turning readable text into garbled symbols.</li>
+                <li><b>Non-standard section headings:</b> Creative headings like "My Journey" instead of
+                "Experience" can confuse rule-based section detection used in deeper ATS scoring.</li>
+            </ul>
+            <p>
+            The safest resumes for ATS parsing are <b>single-column, plain-text-based PDFs with
+            standard fonts and conventional section headers</b> — visually simple, but far more reliably read.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        f"""
+        <div class="neon-box">
+            <h3>⚙️ Tech Stack Behind This Parser</h3>
+            <p>This app uses a two-tier extraction pipeline so it can handle both clean, text-based
+            PDFs and problematic image-based ones:</p>
+            <ul>
+                <li><b>Native text extraction:</b> For standard, text-layer PDFs, the parser reads the
+                embedded text directly — fast, accurate, and requiring no image processing.</li>
+                <li><b>OCR fallback (Tesseract OCR):</b> When a PDF has little or no extractable text
+                — for example, a <b>scanned resume</b>, a <b>photo saved as PDF</b>, or a
+                <b>Word/Docs file "printed" to PDF where text was flattened into an image</b> — the
+                app falls back to <code>pytesseract</code> (a Python wrapper around Google's Tesseract
+                OCR engine). It rasterizes each PDF page into an image, then runs optical character
+                recognition to reconstruct the readable text before running it through the same
+                name/email/phone extraction logic.</li>
+                <li><b>Text cleaning:</b> A preprocessing layer normalizes whitespace, line breaks, and
+                encoding artifacts (common after OCR) before extraction rules are applied, improving
+                match accuracy for both regex and NER-based extraction.</li>
+                <li><b>Regex &amp; rule-based extraction:</b> Dedicated modules handle email and phone
+                number extraction using tuned regular expressions, while name extraction combines
+                layout/positional cues with the PDF metadata and text structure.</li>
+                <li><b>Streamlit:</b> Powers the interactive front-end — file uploads, progress
+                tracking, live status updates, and the results table.</li>
+                <li><b>Pandas + OpenPyXL:</b> Structured results are compiled into a DataFrame and
+                exported to a styled <code>.xlsx</code> file with a neon-green header, borders, and
+                auto-sized columns for a clean, recruiter-ready spreadsheet.</li>
+            </ul>
+            <p>
+            In short: <b>clean text PDFs are read directly</b>, while <b>image-embedded or scanned
+            PDFs are recovered via OCR</b> — giving the app broad coverage across both ATS-friendly
+            and non-ATS-friendly resume formats, even though OCR results are naturally less precise
+            than native text extraction.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+def render_parser_page():
+    st.markdown(
+        """
+        <div class="app-header">
+            <h1>Resume <span>Parser</span></h1>
+            <p>Upload PDF resumes and export clean, structured candidate data to Excel.</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # ---------- ENVIRONMENT CHECK ----------
+    if not is_ocr_available():
+        st.warning(
+            "⚠️ OCR engine (Tesseract) not detected on this server. Scanned "
+            "PDFs won't be read correctly — only text-based PDFs will work. "
+            "If this app is deployed on Streamlit Cloud, add a `packages.txt` "
+            "file to your repo root containing the line `tesseract-ocr` and redeploy."
+        )
+
+    # ---------- SESSION STATE ----------
+    if "results" not in st.session_state:
+        st.session_state.results = []
+
+    if "processed_files" not in st.session_state:
+        st.session_state.processed_files = set()
+
+    uploaded_files = st.file_uploader(
+        "Upload resumes (PDF only)",
+        type=["pdf"],
+        accept_multiple_files=True
+    )
+
+    # ---------- PROCESS FILES ----------
+    if uploaded_files:
+        new_files = [
+            f for f in uploaded_files
+            if f.name not in st.session_state.processed_files
+        ]
+
+        if new_files:
+            progress = st.progress(0)
+            status = st.empty()
+            failed_files = []
+
+            with tempfile.TemporaryDirectory() as temp_dir:
+                for i, file in enumerate(new_files, start=1):
+                    status.text(f"Processing: {file.name}")
+
+                    temp_path = os.path.join(temp_dir, file.name)
+                    with open(temp_path, "wb") as f:
+                        f.write(file.read())
+
+                    result = process_resume(temp_path)
+                    if result:
+                        st.session_state.results.append(result)
+                    else:
+                        failed_files.append(file.name)
+
+                    st.session_state.processed_files.add(file.name)
+                    progress.progress(i / len(new_files))
+
+            status.empty()
+            progress.empty()
+
+            if failed_files:
+                st.error(f"❌ Could not process {len(failed_files)} file(s): {', '.join(failed_files)}")
+            if len(new_files) - len(failed_files) > 0:
+                st.success(f"✅ Successfully processed {len(new_files) - len(failed_files)} file(s)!")
+
+    # ---------- DISPLAY ----------
+    if st.session_state.results:
+        df = pd.DataFrame(st.session_state.results)
+
+        st.subheader("Extracted Data")
+        st.dataframe(df, use_container_width=True)
+
+        excel_buffer = build_styled_excel(df)
+
+        st.download_button(
+            label="⬇  Download Excel",
+            data=excel_buffer,
+            file_name="resume_data.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+
+# ---------- PAGE ROUTING ----------
+if page == "ℹ️ About the App":
+    render_about_page()
+else:
+    render_parser_page()
